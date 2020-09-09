@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <Windows.h>
 #include "SDL2/SDL.h"
 #include "chip8.h"
 #include "chip8keyboard.h"
@@ -11,12 +12,46 @@ const char keyboard_map[CHIP8_TOTAL_KEYS] = {
 };
 int main(int argc, char** argv)
 {
+    if (argc < 2)
+    {
+        printf ("No file loaded\n");
+        return -1;
+    }
+
+    const char* filename = argv[1];
+
+    printf("The filename to load is: %s\n", filename);
+
+    FILE* f = fopen(filename, "rb");
+
+    if (!f)
+    {
+        printf("Failed to open file\n");
+        return -1;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char buf[size];
+    int res = fread(buf, size, 1, f);
+
+    if (res != 1)
+    {
+        printf("FILE COULD NOT BE READ");
+        return -1;
+    }
+
+    printf("%s\n", buf);
+    
+
     struct chip8 chip8;
     chip8_init(&chip8);
-
+    chip8_load(&chip8, "Hello World", sizeof("Hello World"));
     // chip8_screen_set(&chip8.screen, 10, 1);
 
-    chip8_screen_draw_sprite(&chip8.screen, 0, 0, &chip8.memory.memory[0x05], 5);   
+    chip8_screen_draw_sprite(&chip8.screen, 62, 10, &chip8.memory.memory[0x05], 5);   
 
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_Window* window = SDL_CreateWindow(
@@ -90,7 +125,24 @@ int main(int argc, char** argv)
         }
         
         SDL_RenderPresent(renderer);
-    }
+
+
+        if (chip8.registers.delay_timer > 0)
+        {
+            Sleep(100);
+            chip8.registers.delay_timer -= 1;
+        }
+
+        if (chip8.registers.sound_timer > 0)
+        {
+            Beep(8000, 100 * chip8.registers.sound_timer);
+            chip8.registers.sound_timer = 0;
+        }
+
+        
+        }
+
+    
 
     out:
         SDL_DestroyWindow(window);
