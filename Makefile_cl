@@ -1,0 +1,11 @@
+INCLUDES= /Iinclude/
+FLAGS= -g
+
+OBJECTS= 
+all:
+	cl.exe -Z7 /Iinclude/ /Fobin/main /c src/main.c
+	link.exe /OUT:bin/main.exe bin/main.obj build/chip8memory.obj /LIBPATH:D:\C\chip8\lib SDL2.lib SDL2main.lib /SUBSYSTEM:CONSOLE
+
+build/chip8memory.obj:src/chip8memory.c
+	cl.exe -Z7 /Iinclude/ /Fobuild/chip8memory /c src/chip8memory.c
+	link.exe /OUT:bin/main.exe build/chip8memory.obj 
